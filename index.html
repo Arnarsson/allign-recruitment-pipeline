@@ -564,6 +564,7 @@
         <button class="btn-test" onclick="toggleTestControls()">Hide</button>
         <button class="btn-test" onclick="fillTestData()">Fill Form</button>
         <button class="btn-test" onclick="clearForm()">Clear</button>
+        <button class="btn-test" onclick="submitTestApplication()">Submit Test</button>
     </div>
     
     <div class="hero">
@@ -1141,40 +1142,40 @@
         function fillTestData() {
             const testData = {
                 // Section 1: Basic Information
-                name: "Alex Johnson",
-                email: "alex.johnson.dev@gmail.com",
-                phone: "+45 23 45 67 89",
-                location: "Copenhagen, Denmark",
-                linkedin: "https://linkedin.com/in/alexjohnsondev",
-                github: "https://github.com/alexjohnsondev",
+                name: "TEST APPLICANT - DO NOT CONTACT",
+                email: "test.application.fake@example.com",
+                phone: "+00 00 00 00 00",
+                location: "TEST CITY, TEST COUNTRY",
+                linkedin: "https://linkedin.com/in/test-fake-profile",
+                github: "https://github.com/test-fake-user",
                 
                 // Section 2: Technical Experience
-                q1: "I built a comprehensive project management dashboard using Next.js 13 with the new app router. The application handles real-time updates for 500+ concurrent users using WebSocket connections and Server-Sent Events. I implemented optimistic updates with React Query for better UX, used Zustand for state management, and optimized rendering performance using React.memo and useMemo hooks. The dashboard includes drag-and-drop task management, real-time notifications, and advanced filtering with debounced search.",
+                q1: "🧪 TEST DATA - This is a sample response about building a React dashboard with Next.js 13, WebSocket connections, and performance optimizations. This is NOT a real application - it's test data for development purposes only.",
                 
-                q2: "I use GitHub Copilot daily for boilerplate code generation and Claude/ChatGPT for architectural decisions and complex problem-solving. Recently, I used AI tools to refactor a 8000-line legacy React class component codebase to functional components with hooks, reducing bundle size by 30%. I also leverage Cursor IDE for context-aware code generation and use AI for writing comprehensive unit tests and documentation.",
+                q2: "🧪 TEST DATA - This is sample text about using GitHub Copilot, Claude, and other AI tools for development. This is NOT a real application - it's test data for development purposes only.",
                 
-                q3: "1. https://github.com/alexjohnsondev/react-dashboard - Production-ready dashboard with 1.2k+ stars, 200+ forks\n2. https://taskflow.app - SaaS platform serving 5000+ users with 99.9% uptime\n3. https://dev.to/alexjohnson/optimizing-react-performance - Technical article with 15k+ views on React optimization\n4. https://github.com/alexjohnsondev/ai-code-reviewer - Open-source AI tool for code review automation",
+                q3: "🧪 TEST DATA - FAKE PORTFOLIO LINKS:\n1. https://example.com/fake-project - This is not a real project\n2. https://example.com/fake-app - This is not a real application\n3. This is NOT a real application - it's test data for development purposes only.",
                 
                 // Section 3: Availability & Commitment
-                q4: "2-weeks",
+                q4: "immediately",
                 
-                q5: "I'm based in Copenhagen (CET/UTC+1) and typically work 9 AM to 6 PM local time. This provides excellent overlap with European team members and allows for real-time collaboration during core business hours. I'm flexible with meeting times and comfortable with both synchronous and asynchronous communication patterns. I have experience working with distributed teams across multiple time zones.",
+                q5: "🧪 TEST DATA - This is sample text about work hours and time zones. This is NOT a real application - it's test data for development purposes only.",
                 
-                q6: "I've been working remotely for 4+ years, including 2 years with a 6-person startup where I was the lead frontend developer. I'm highly proficient with remote collaboration tools (Slack, Discord, Zoom, Linear, GitHub) and have a dedicated home office setup with reliable internet and professional lighting for video calls. I excel at async communication and always document important decisions and technical discussions.",
+                q6: "🧪 TEST DATA - This is sample text about remote work experience. This is NOT a real application - it's test data for development purposes only.",
                 
                 // Section 4: Culture & Motivation  
-                q7: "Construction is one of the last major industries to embrace digital transformation, creating enormous opportunities for impact. Having worked with field service apps before, I understand the unique challenges of building software that works reliably in harsh outdoor conditions with spotty connectivity. I'm excited about solving real problems for workers who often get overlooked by tech innovation. The combination of AI/ML potential and practical field application really appeals to me.",
+                q7: "🧪 TEST DATA - This is sample text about interest in ALLIGN and construction tech. This is NOT a real application - it's test data for development purposes only.",
                 
-                q8: "At my previous startup, I was employee #4 and took on everything from frontend architecture to DevOps and customer support. I thrived in the fast-paced environment where we shipped features weekly based on direct user feedback. I'm comfortable with ambiguity, rapid iteration, and wearing multiple hats. I actually prefer the startup environment because you can see the direct impact of your work on the product and users, rather than being just one cog in a large machine.",
+                q8: "🧪 TEST DATA - This is sample text about startup experience. This is NOT a real application - it's test data for development purposes only.",
                 
-                q9: "Our React app was experiencing severe memory leaks on mobile devices, with crashes after 10-15 minutes of usage. I used Chrome DevTools and React Profiler to identify that we had thousands of event listeners not being cleaned up and components re-rendering unnecessarily. I implemented proper cleanup in useEffect hooks, added React.memo to expensive components, and introduced virtualization for large lists. The result was a 75% reduction in memory usage and elimination of mobile crashes.",
+                q9: "🧪 TEST DATA - This is sample text about a technical challenge. This is NOT a real application - it's test data for development purposes only.",
                 
                 // Section 5: Final Details
-                q10: "€55,000 - €75,000 + equity (flexible based on equity percentage and growth potential)",
+                q10: "🧪 TEST SALARY - $999,999 (This is fake test data)",
                 
-                q11: "What's the current tech stack and development workflow? How do you handle testing and deployment for field applications? What are the biggest technical challenges you're facing with offline functionality and data synchronization? How does the team approach user research and validation with construction workers?",
+                q11: "🧪 TEST DATA - These are sample questions for the company. This is NOT a real application - it's test data for development purposes only.",
                 
-                q12: "I have a strong background in PWA development and offline-first architectures, which seems directly relevant for field applications. I also have experience in IoT data processing from my previous role, which could be valuable for integrating with construction equipment and sensors. I'm passionate about creating intuitive UIs that work well even for users who aren't tech-savvy."
+                q12: "🧪 TEST DATA - This is sample additional information. This is NOT a real application - it's test data for development purposes only."
             };
             
             // Fill all form fields
@@ -1220,6 +1221,47 @@
             saveFormData();
             
             console.log('Form cleared successfully!');
+        }
+        
+        async function submitTestApplication() {
+            // Fill the form with test data first
+            fillTestData();
+            
+            // Wait a moment for the form to be filled
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Navigate directly to the final section
+            currentSection = totalSections;
+            
+            // Hide all sections first
+            for (let i = 1; i < totalSections; i++) {
+                document.getElementById(`section${i}`).classList.remove('active');
+                document.getElementById(`step${i}`).classList.remove('active');
+                document.getElementById(`step${i}`).classList.add('completed');
+            }
+            
+            // Show final section
+            document.getElementById(`section${currentSection}`).classList.add('active');
+            document.getElementById(`step${currentSection}`).classList.add('active');
+            
+            // Update progress bar to final step
+            updateProgressBar();
+            
+            // Update summary with test data
+            updateSummary();
+            
+            // Scroll to top
+            document.querySelector('.form-content').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+            
+            console.log('Test application ready for submission!');
+            
+            // Automatically submit after a short delay to show the final step
+            setTimeout(() => {
+                submitApplication();
+            }, 1000);
         }
     </script>
 </body>
