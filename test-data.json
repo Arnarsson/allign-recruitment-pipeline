@@ -1,0 +1,35 @@
+{
+  "test_application": {
+    "name": "Test Candidate",
+    "email": "test@example.com",
+    "phone": "+45 12345678",
+    "location": "Copenhagen, Denmark",
+    "linkedin": "https://linkedin.com/in/testuser",
+    "github": "https://github.com/testuser",
+    "react_experience": "I have 3 years of experience building production React applications. Most recently, I built a real-time dashboard for tracking delivery vehicles using Next.js, React hooks, and WebSocket connections. The dashboard handled 1000+ concurrent connections and updated vehicle positions in real-time. I used Context API for state management and implemented virtualization for performance optimization.",
+    "ai_tools_experience": "I use GitHub Copilot daily for code completion and Claude for complex problem-solving. Recently used AI to refactor a 5000-line legacy codebase, reducing it by 40% while improving readability. I also use ChatGPT for debugging and exploring new technologies.",
+    "portfolio_links": "https://github.com/testuser/react-dashboard - Real-time dashboard with 500+ stars\nhttps://myapp.com - Production SaaS with 1000+ active users\nhttps://dev.to/testuser/optimizing-react-performance - Technical blog post",
+    "offline_architecture": "I would implement Service Workers for caching strategies, IndexedDB for local data storage, and a sync queue for API calls. When offline, all user actions would be queued. Once online, the queue would process using background sync API, with conflict resolution based on timestamps.",
+    "technical_challenge": "Our app was crashing when rendering 10k+ data points in a chart. I implemented virtual scrolling, memoization with useMemo, and moved heavy calculations to Web Workers. Also added lazy loading and pagination. Result: Reduced initial load time by 80% and eliminated crashes.",
+    "system_design": "For scaling from 50 to 5000 users, I'd use: Microservices architecture with Next.js frontend and Node.js APIs. PostgreSQL with read replicas for data, Redis for caching. Vercel or AWS for hosting with auto-scaling. CDN for static assets. Implement horizontal scaling, load balancing, and monitoring with DataDog.",
+    "start_date": "immediately",
+    "commitment": "fulltime",
+    "expected_salary": "25,000 DKK",
+    "why_allign": "I'm excited about solving real problems for construction workers. The challenge of building offline-first applications that work in harsh field conditions is fascinating. Plus, being developer #1 means I can shape the technical direction and culture.",
+    "questions_for_us": "What's the tech stack flexibility? How soon do you plan to hire developer #2? What's the equity package structure?",
+    "referral_source": "linkedin",
+    "submitted_at": "2024-08-06T10:30:00Z",
+    "application_id": "APP-TEST-123456"
+  },
+  "expected_scores": {
+    "technical": 85,
+    "ai_tools": 90,
+    "portfolio": 85,
+    "offline_solution": 90,
+    "availability": 95,
+    "weighted_total": 88,
+    "recommendation": "FAST_TRACK",
+    "priority": "URGENT"
+  },
+  "curl_test_command": "curl -X POST YOUR_WEBHOOK_URL -H 'Content-Type: application/json' -d @test-data.json"
+}
