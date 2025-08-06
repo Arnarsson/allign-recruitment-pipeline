@@ -1,0 +1,19 @@
+{
+  "name": "allign-recruitment-pipeline",
+  "version": "1.0.0",
+  "description": "ALLIGN recruitment application form",
+  "main": "application-form.html",
+  "scripts": {
+    "start": "echo 'Static site - no start script needed'",
+    "build": "echo 'Static site - no build script needed'"
+  },
+  "keywords": [
+    "recruitment",
+    "application",
+    "form",
+    "allign",
+    "construction-tech"
+  ],
+  "author": "ALLIGN",
+  "license": "MIT"
+}

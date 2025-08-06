@@ -633,26 +633,453 @@
                 </div>
             </div>
             
-            <!-- Sections 3-5 continue similarly... truncated for length -->
+            <!-- Section 3: Availability & Commitment -->
+            <div class="section" id="section3">
+                <h2>Availability & Work Style</h2>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">4</span> Start Date <span class="required">*</span></h3>
+                    <p>When would you be available to start?</p>
+                    <select id="q4" required>
+                        <option value="">Select your availability</option>
+                        <option value="immediately">Immediately</option>
+                        <option value="2-weeks">2 weeks notice</option>
+                        <option value="1-month">1 month notice</option>
+                        <option value="2-months">2+ months</option>
+                    </select>
+                    <div class="hint">💡 We understand different notice periods - honesty is appreciated</div>
+                </div>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">5</span> Work Hours & Time Zone <span class="required">*</span></h3>
+                    <p>What's your preferred working schedule and time zone overlap with European hours?</p>
+                    <textarea id="q5" placeholder="Example: I'm in EST (UTC-5) and typically work 9 AM - 6 PM. This gives me 3-4 hours overlap with Copenhagen time for meetings and collaboration..." required></textarea>
+                    <div class="char-counter" data-max="400">0 / 400</div>
+                    <div class="hint">💡 We need some overlap with CET (Copenhagen) for team collaboration</div>
+                </div>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">6</span> Remote Work Experience <span class="required">*</span></h3>
+                    <p>Describe your experience with remote work, especially in early-stage teams.</p>
+                    <textarea id="q6" placeholder="Example: I've worked remotely for 3+ years, including 18 months with a 5-person startup. I use Slack daily, am comfortable with async communication, and have a dedicated home office setup..." required></textarea>
+                    <div class="char-counter" data-max="500">0 / 500</div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="previousSection()">← Previous</button>
+                    <button class="btn btn-primary" onclick="nextSection()">Next Step →</button>
+                </div>
+            </div>
+            
+            <!-- Section 4: Culture & Motivation -->
+            <div class="section" id="section4">
+                <h2>Culture & Motivation</h2>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">7</span> Why ALLIGN? <span class="required">*</span></h3>
+                    <p>What interests you about ALLIGN and the construction tech space?</p>
+                    <textarea id="q7" placeholder="Example: I'm excited about solving real-world problems for construction workers. The industry is ripe for disruption and I love the challenge of building tools that work in harsh field conditions..." required></textarea>
+                    <div class="char-counter" data-max="600">0 / 600</div>
+                    <div class="hint">💡 Show us you understand our mission and the challenges we're solving</div>
+                </div>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">8</span> Startup Experience <span class="required">*</span></h3>
+                    <p>Tell us about your experience in early-stage companies or fast-paced environments.</p>
+                    <textarea id="q8" placeholder="Example: At my previous startup, I was employee #3 and wore many hats - from frontend to DevOps. I thrive in environments where I can ship fast and iterate based on user feedback..." required></textarea>
+                    <div class="char-counter" data-max="600">0 / 600</div>
+                    <div class="hint">💡 If no startup experience, describe how you handle ambiguity and rapid changes</div>
+                </div>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">9</span> Technical Challenge</h3>
+                    <p>Describe a complex technical problem you solved recently. What was your approach?</p>
+                    <textarea id="q9" placeholder="Example: We had a memory leak in our React app affecting mobile users. I used Chrome DevTools to profile memory usage, identified unnecessary re-renders in a list component, implemented virtualization, and reduced memory usage by 70%..."></textarea>
+                    <div class="char-counter" data-max="700">0 / 700</div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="previousSection()">← Previous</button>
+                    <button class="btn btn-primary" onclick="nextSection()">Next Step →</button>
+                </div>
+            </div>
+            
+            <!-- Section 5: Final Details -->
+            <div class="section" id="section5">
+                <h2>Final Details</h2>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">10</span> Salary Expectations</h3>
+                    <p>What's your expected salary range? (Optional - we're open to discussing based on experience)</p>
+                    <input type="text" id="q10" placeholder="e.g., €50,000 - €70,000 + equity">
+                    <div class="hint">💡 Remember we're an early-stage startup with competitive equity options</div>
+                </div>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">11</span> Questions for Us?</h3>
+                    <p>What would you like to know about ALLIGN, the role, or our team?</p>
+                    <textarea id="q11" placeholder="Example: How does the team currently handle code reviews? What's the product roadmap for the next 6 months? What are the biggest technical challenges you're facing?"></textarea>
+                    <div class="char-counter" data-max="500">0 / 500</div>
+                </div>
+                
+                <div class="question-card">
+                    <h3><span class="question-number">12</span> Anything Else?</h3>
+                    <p>Is there anything else you'd like us to know about you or your application?</p>
+                    <textarea id="q12" placeholder="Example: I'm also passionate about UI/UX design and have experience creating user-friendly interfaces for technical products..."></textarea>
+                    <div class="char-counter" data-max="400">0 / 400</div>
+                </div>
+                
+                <!-- Summary Section -->
+                <div class="summary-section">
+                    <h3>Application Summary</h3>
+                    <div class="summary-content" id="summaryContent">
+                        Your responses will be summarized here before submission.
+                    </div>
+                </div>
+                
+                <!-- Consent -->
+                <div class="consent-box">
+                    <label>
+                        <input type="checkbox" id="consent" required>
+                        <span>I consent to ALLIGN processing my personal data for recruitment purposes. I understand that my information will be used to evaluate my application and may be stored for future opportunities. <span class="required">*</span></span>
+                    </label>
+                </div>
+                
+                <div class="navigation">
+                    <button class="btn btn-secondary" onclick="previousSection()">← Previous</button>
+                    <button class="btn btn-success" onclick="submitApplication()">
+                        <span id="submitText">Submit Application</span>
+                        <span id="submitLoading" style="display: none;" class="loading"></span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Success Section -->
+            <div class="section" id="successSection">
+                <div class="success-container">
+                    <div class="success-icon">✓</div>
+                    <h2>Application Submitted Successfully!</h2>
+                    <p>Thank you for your interest in joining ALLIGN. We've received your application and will review it within 24-48 hours.</p>
+                    <p>You should receive a confirmation email shortly at <strong id="confirmEmail"></strong>.</p>
+                    <p>Our team will reach out with next steps soon!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer">
+        <div class="company-info">
+            <h3>About ALLIGN</h3>
+            <p>We're building the future of construction management software, starting with time tracking that actually works in the field.</p>
         </div>
     </div>
     
     <script>
-        // JavaScript code for form functionality (truncated for length)
         let currentSection = 1;
         const totalSections = 5;
         const formData = {};
         
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCharCounters();
+            updateProgressBar();
+            
+            // Add event listeners for character counters
+            document.querySelectorAll('textarea, input[type="text"]').forEach(element => {
+                element.addEventListener('input', function() {
+                    updateCharCounter(this);
+                    saveFormData();
+                });
+            });
+            
+            // Add event listeners for other inputs
+            document.querySelectorAll('select, input[type="email"], input[type="tel"], input[type="url"]').forEach(element => {
+                element.addEventListener('change', saveFormData);
+            });
+        });
+        
+        function updateCharCounters() {
+            document.querySelectorAll('.char-counter').forEach(counter => {
+                const textarea = counter.previousElementSibling;
+                if (textarea && textarea.tagName === 'TEXTAREA') {
+                    updateCharCounter(textarea);
+                }
+            });
+        }
+        
+        function updateCharCounter(element) {
+            const counter = element.nextElementSibling;
+            if (counter && counter.classList.contains('char-counter')) {
+                const maxLength = parseInt(counter.getAttribute('data-max'));
+                const currentLength = element.value.length;
+                
+                counter.textContent = `${currentLength} / ${maxLength}`;
+                
+                counter.classList.remove('warning', 'error');
+                if (currentLength > maxLength * 0.9) {
+                    counter.classList.add('warning');
+                }
+                if (currentLength > maxLength) {
+                    counter.classList.add('error');
+                }
+            }
+        }
+        
+        function saveFormData() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.id) {
+                    formData[input.id] = input.value;
+                }
+            });
+        }
+        
+        function validateCurrentSection() {
+            const currentSectionElement = document.getElementById(`section${currentSection}`);
+            const requiredFields = currentSectionElement.querySelectorAll('[required]');
+            
+            for (let field of requiredFields) {
+                if (!field.value.trim()) {
+                    showError(`Please fill in all required fields.`);
+                    field.focus();
+                    return false;
+                }
+                
+                if (field.type === 'email' && !isValidEmail(field.value)) {
+                    showError('Please enter a valid email address.');
+                    field.focus();
+                    return false;
+                }
+            }
+            
+            // Check character limits
+            const textareas = currentSectionElement.querySelectorAll('textarea');
+            for (let textarea of textareas) {
+                const counter = textarea.nextElementSibling;
+                if (counter && counter.classList.contains('char-counter')) {
+                    const maxLength = parseInt(counter.getAttribute('data-max'));
+                    if (textarea.value.length > maxLength) {
+                        showError(`Please keep your response under ${maxLength} characters.`);
+                        textarea.focus();
+                        return false;
+                    }
+                }
+            }
+            
+            hideError();
+            return true;
+        }
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+            
+            // Scroll to top to show error
+            document.querySelector('.form-content').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+        
+        function hideError() {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.classList.remove('show');
+        }
+        
         function nextSection() {
-            // Implementation
+            if (!validateCurrentSection()) {
+                return;
+            }
+            
+            if (currentSection < totalSections) {
+                // Mark current step as completed
+                document.getElementById(`step${currentSection}`).classList.remove('active');
+                document.getElementById(`step${currentSection}`).classList.add('completed');
+                
+                // Hide current section
+                document.getElementById(`section${currentSection}`).classList.remove('active');
+                
+                // Move to next section
+                currentSection++;
+                
+                // Show next section
+                document.getElementById(`section${currentSection}`).classList.add('active');
+                
+                // Update active step
+                document.getElementById(`step${currentSection}`).classList.add('active');
+                
+                updateProgressBar();
+                
+                // Update summary if we're on the last section
+                if (currentSection === totalSections) {
+                    updateSummary();
+                }
+                
+                // Scroll to top
+                document.querySelector('.form-content').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
         }
         
         function previousSection() {
-            // Implementation
+            if (currentSection > 1) {
+                // Remove active from current step
+                document.getElementById(`step${currentSection}`).classList.remove('active');
+                
+                // Hide current section
+                document.getElementById(`section${currentSection}`).classList.remove('active');
+                
+                // Move to previous section
+                currentSection--;
+                
+                // Show previous section
+                document.getElementById(`section${currentSection}`).classList.add('active');
+                
+                // Update previous step
+                document.getElementById(`step${currentSection}`).classList.remove('completed');
+                document.getElementById(`step${currentSection}`).classList.add('active');
+                
+                updateProgressBar();
+                
+                // Scroll to top
+                document.querySelector('.form-content').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
         }
         
-        function submitApplication() {
-            // Implementation
+        function updateProgressBar() {
+            const progressPercentage = ((currentSection - 1) / (totalSections - 1)) * 100;
+            document.getElementById('progressLine').style.width = `${progressPercentage}%`;
+        }
+        
+        function updateSummary() {
+            const summaryContent = document.getElementById('summaryContent');
+            let summary = '<strong>Basic Information:</strong><br>';
+            summary += `Name: ${formData.name || 'Not provided'}<br>`;
+            summary += `Email: ${formData.email || 'Not provided'}<br>`;
+            summary += `Location: ${formData.location || 'Not provided'}<br><br>`;
+            
+            summary += '<strong>Experience Summary:</strong><br>';
+            if (formData.q1) summary += `React/Next.js: ${formData.q1.substring(0, 100)}...<br>`;
+            if (formData.q2) summary += `AI Tools: ${formData.q2.substring(0, 100)}...<br>`;
+            if (formData.q4) summary += `Availability: ${formData.q4}<br>`;
+            
+            summaryContent.innerHTML = summary;
+        }
+        
+        async function submitApplication() {
+            if (!validateCurrentSection()) {
+                return;
+            }
+            
+            saveFormData();
+            
+            // Show loading state
+            document.getElementById('submitText').style.display = 'none';
+            document.getElementById('submitLoading').style.display = 'inline-block';
+            document.querySelector('.btn-success').disabled = true;
+            
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const referralSource = urlParams.get('ref') || 'direct';
+            
+            // Prepare submission data
+            const submissionData = {
+                // Basic Information
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                location: formData.location,
+                linkedin: formData.linkedin,
+                github: formData.github,
+                
+                // Technical Questions
+                reactExperience: formData.q1,
+                aiToolsExperience: formData.q2,
+                portfolio: formData.q3,
+                
+                // Availability
+                startDate: formData.q4,
+                workHours: formData.q5,
+                remoteExperience: formData.q6,
+                
+                // Culture & Motivation
+                whyAllign: formData.q7,
+                startupExperience: formData.q8,
+                technicalChallenge: formData.q9,
+                
+                // Final Details
+                salaryExpectations: formData.q10,
+                questionsForUs: formData.q11,
+                additionalInfo: formData.q12,
+                
+                // Metadata
+                submittedAt: new Date().toISOString(),
+                referralSource: referralSource,
+                userAgent: navigator.userAgent,
+                consent: document.getElementById('consent').checked
+            };
+            
+            try {
+                const response = await fetch('https://n8n.aigrowthadvisors.cc/webhook/allign-developer-application', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(submissionData)
+                });
+                
+                if (response.ok) {
+                    // Hide current section
+                    document.getElementById(`section${currentSection}`).classList.remove('active');
+                    
+                    // Show success section
+                    document.getElementById('successSection').classList.add('active');
+                    document.getElementById('confirmEmail').textContent = formData.email;
+                    
+                    // Update progress to completed
+                    document.getElementById(`step${currentSection}`).classList.remove('active');
+                    document.getElementById(`step${currentSection}`).classList.add('completed');
+                    document.getElementById('progressLine').style.width = '100%';
+                    
+                    // Scroll to top
+                    document.querySelector('.form-content').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                    
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                showError('There was an error submitting your application. Please try again or contact us directly.');
+                
+                // Reset button state
+                document.getElementById('submitText').style.display = 'inline';
+                document.getElementById('submitLoading').style.display = 'none';
+                document.querySelector('.btn-success').disabled = false;
+            }
+        }
+        
+        // Utility functions
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
     </script>
 </body>
