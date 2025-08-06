@@ -529,9 +529,44 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        .test-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .test-controls.visible {
+            display: block;
+        }
+        
+        .btn-test {
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        
+        .btn-test:hover {
+            background: #ff5252;
+        }
     </style>
 </head>
 <body>
+    <!-- Hidden test controls (visible with Ctrl+Shift+T) -->
+    <div class="test-controls" id="testControls">
+        <button class="btn-test" onclick="toggleTestControls()">Hide</button>
+        <button class="btn-test" onclick="fillTestData()">Fill Form</button>
+        <button class="btn-test" onclick="clearForm()">Clear</button>
+        <button class="btn-test" onclick="submitTestApplication()">Submit Test</button>
+    </div>
+    
     <div class="hero">
         <h1>Join ALLIGN as Full-Stack Developer</h1>
         <p>Help us transform the construction industry with modern, AI-powered tools that actually work in the field</p>
@@ -1080,6 +1115,153 @@
             var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
             var results = regex.exec(location.search);
             return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+        
+        // Test functionality
+        let testControlsVisible = false;
+        
+        // Listen for Ctrl+Shift+T to show/hide test controls
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                e.preventDefault();
+                toggleTestControls();
+            }
+        });
+        
+        function toggleTestControls() {
+            const controls = document.getElementById('testControls');
+            testControlsVisible = !testControlsVisible;
+            
+            if (testControlsVisible) {
+                controls.classList.add('visible');
+            } else {
+                controls.classList.remove('visible');
+            }
+        }
+        
+        function fillTestData() {
+            const testData = {
+                // Section 1: Basic Information
+                name: "TEST APPLICANT - DO NOT CONTACT",
+                email: "test.application.fake@example.com",
+                phone: "+00 00 00 00 00",
+                location: "TEST CITY, TEST COUNTRY",
+                linkedin: "https://linkedin.com/in/test-fake-profile",
+                github: "https://github.com/test-fake-user",
+                
+                // Section 2: Technical Experience
+                q1: "🧪 TEST DATA - This is a sample response about building a React dashboard with Next.js 13, WebSocket connections, and performance optimizations. This is NOT a real application - it's test data for development purposes only.",
+                
+                q2: "🧪 TEST DATA - This is sample text about using GitHub Copilot, Claude, and other AI tools for development. This is NOT a real application - it's test data for development purposes only.",
+                
+                q3: "🧪 TEST DATA - FAKE PORTFOLIO LINKS:\n1. https://example.com/fake-project - This is not a real project\n2. https://example.com/fake-app - This is not a real application\n3. This is NOT a real application - it's test data for development purposes only.",
+                
+                // Section 3: Availability & Commitment
+                q4: "immediately",
+                
+                q5: "🧪 TEST DATA - This is sample text about work hours and time zones. This is NOT a real application - it's test data for development purposes only.",
+                
+                q6: "🧪 TEST DATA - This is sample text about remote work experience. This is NOT a real application - it's test data for development purposes only.",
+                
+                // Section 4: Culture & Motivation  
+                q7: "🧪 TEST DATA - This is sample text about interest in ALLIGN and construction tech. This is NOT a real application - it's test data for development purposes only.",
+                
+                q8: "🧪 TEST DATA - This is sample text about startup experience. This is NOT a real application - it's test data for development purposes only.",
+                
+                q9: "🧪 TEST DATA - This is sample text about a technical challenge. This is NOT a real application - it's test data for development purposes only.",
+                
+                // Section 5: Final Details
+                q10: "🧪 TEST SALARY - $999,999 (This is fake test data)",
+                
+                q11: "🧪 TEST DATA - These are sample questions for the company. This is NOT a real application - it's test data for development purposes only.",
+                
+                q12: "🧪 TEST DATA - This is sample additional information. This is NOT a real application - it's test data for development purposes only."
+            };
+            
+            // Fill all form fields
+            Object.keys(testData).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = testData[key];
+                    // Trigger events to update character counters and save data
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+            
+            // Check consent checkbox
+            const consentCheckbox = document.getElementById('consent');
+            if (consentCheckbox) {
+                consentCheckbox.checked = true;
+            }
+            
+            // Update character counters and save form data
+            updateCharCounters();
+            saveFormData();
+            
+            console.log('Test data filled successfully!');
+        }
+        
+        function clearForm() {
+            // Clear all form fields
+            const inputs = document.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    input.checked = false;
+                } else {
+                    input.value = '';
+                }
+                // Trigger events to update character counters
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            // Update character counters and save form data
+            updateCharCounters();
+            saveFormData();
+            
+            console.log('Form cleared successfully!');
+        }
+        
+        async function submitTestApplication() {
+            // Fill the form with test data first
+            fillTestData();
+            
+            // Wait a moment for the form to be filled
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Navigate directly to the final section
+            currentSection = totalSections;
+            
+            // Hide all sections first
+            for (let i = 1; i < totalSections; i++) {
+                document.getElementById(`section${i}`).classList.remove('active');
+                document.getElementById(`step${i}`).classList.remove('active');
+                document.getElementById(`step${i}`).classList.add('completed');
+            }
+            
+            // Show final section
+            document.getElementById(`section${currentSection}`).classList.add('active');
+            document.getElementById(`step${currentSection}`).classList.add('active');
+            
+            // Update progress bar to final step
+            updateProgressBar();
+            
+            // Update summary with test data
+            updateSummary();
+            
+            // Scroll to top
+            document.querySelector('.form-content').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+            
+            console.log('Test application ready for submission!');
+            
+            // Automatically submit after a short delay to show the final step
+            setTimeout(() => {
+                submitApplication();
+            }, 1000);
         }
     </script>
 </body>
