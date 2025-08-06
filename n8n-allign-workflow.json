@@ -1,0 +1,360 @@
+{
+  "meta": {
+    "instanceId": "allign-recruitment-pipeline"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "allign-developer-application",
+        "responseMode": "responseNode",
+        "options": {
+          "noResponseBody": false
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Application Received",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "allign-dev-app"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "applicantName",
+              "value": "={{ $json.name }}"
+            },
+            {
+              "name": "applicantEmail", 
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "applicationId",
+              "value": "={{ $json.email.split('@')[0] }}-{{ new Date().getTime() }}"
+            },
+            {
+              "name": "submittedAt",
+              "value": "={{ $json.submittedAt }}"
+            },
+            {
+              "name": "referralSource",
+              "value": "={{ $json.referralSource || 'direct' }}"
+            }
+          ]
+        }
+      },
+      "id": "extract-basic-data",
+      "name": "Extract Basic Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an expert technical recruiter evaluating developer applications for ALLIGN, a construction tech startup. Analyze the application and provide a detailed JSON response with scoring and recommendations.\n\nScoring Criteria (0-100 scale):\n- Technical Skills (35%): React/Next.js experience, code quality, problem-solving\n- AI Tools Proficiency (20%): Experience with AI development tools\n- Availability & Fit (15%): Start date, timezone overlap, remote work experience  \n- Culture & Motivation (15%): Understanding of mission, startup experience\n- Portfolio Quality (10%): GitHub repos, production apps, technical writing\n- Communication (5%): Clarity of responses, professionalism\n\nRouting Logic:\n- 85-100: FAST_TRACK (immediate interview)\n- 70-84: INTERVIEW (schedule within 48h)\n- 55-69: TECHNICAL_TEST (send coding assessment)\n- 40-54: REVIEW (manual review required)\n- 0-39: REJECT (polite rejection)\n\nProvide your response in this exact JSON format:\n{\n  \"overallScore\": 0-100,\n  \"routing\": \"FAST_TRACK|INTERVIEW|TECHNICAL_TEST|REVIEW|REJECT\",\n  \"scores\": {\n    \"technical\": 0-100,\n    \"aiTools\": 0-100, \n    \"availability\": 0-100,\n    \"culture\": 0-100,\n    \"portfolio\": 0-100,\n    \"communication\": 0-100\n  },\n  \"strengths\": [\"list of 2-4 key strengths\"],\n  \"concerns\": [\"list of 0-3 concerns or gaps\"],\n  \"recommendations\": [\"list of 2-3 next steps\"],\n  \"interviewFocus\": [\"list of 2-3 areas to focus on in interview\"],\n  \"summary\": \"2-3 sentence summary of candidate\"\n}"
+            },
+            {
+              "role": "user", 
+              "content": "Evaluate this developer application:\n\nBASIC INFO:\nName: {{ $json.name }}\nEmail: {{ $json.email }}\nLocation: {{ $json.location }}\nLinkedIn: {{ $json.linkedin }}\nGitHub: {{ $json.github }}\n\nTECHNICAL EXPERIENCE:\nReact/Next.js: {{ $json.reactExperience }}\nAI Tools: {{ $json.aiToolsExperience }}\nPortfolio: {{ $json.portfolio }}\n\nAVAILABILITY:\nStart Date: {{ $json.startDate }}\nWork Hours: {{ $json.workHours }}\nRemote Experience: {{ $json.remoteExperience }}\n\nCULTURE & MOTIVATION:\nWhy ALLIGN: {{ $json.whyAllign }}\nStartup Experience: {{ $json.startupExperience }}\nTechnical Challenge: {{ $json.technicalChallenge }}\n\nFINAL DETAILS:\nSalary Expectations: {{ $json.salaryExpectations }}\nQuestions: {{ $json.questionsForUs }}\nAdditional Info: {{ $json.additionalInfo }}\n\nReferral Source: {{ $json.referralSource }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "ai-evaluation",
+      "name": "AI Evaluation (GPT-4)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and extract scoring data\nconst aiResponse = $input.first().json.message.content;\nlet evaluation;\n\ntry {\n  // Try to parse JSON from AI response\n  evaluation = JSON.parse(aiResponse);\n} catch (error) {\n  // Fallback if JSON parsing fails\n  evaluation = {\n    overallScore: 50,\n    routing: \"REVIEW\",\n    scores: {\n      technical: 50,\n      aiTools: 50,\n      availability: 50,\n      culture: 50,\n      portfolio: 50,\n      communication: 50\n    },\n    strengths: [\"Requires manual review\"],\n    concerns: [\"AI evaluation failed\"],\n    recommendations: [\"Manual review required\"],\n    interviewFocus: [\"General technical discussion\"],\n    summary: \"Application requires manual evaluation due to parsing error.\"\n  };\n}\n\n// Calculate weighted score\nconst weightedScore = Math.round(\n  (evaluation.scores.technical * 0.35) +\n  (evaluation.scores.aiTools * 0.20) +\n  (evaluation.scores.availability * 0.15) +\n  (evaluation.scores.culture * 0.15) +\n  (evaluation.scores.portfolio * 0.10) +\n  (evaluation.scores.communication * 0.05)\n);\n\n// Determine routing based on score\nlet routing = evaluation.routing;\nif (weightedScore >= 85) routing = \"FAST_TRACK\";\nelse if (weightedScore >= 70) routing = \"INTERVIEW\";\nelse if (weightedScore >= 55) routing = \"TECHNICAL_TEST\";\nelse if (weightedScore >= 40) routing = \"REVIEW\";\nelse routing = \"REJECT\";\n\n// Get original application data\nconst originalData = $input.all()[0].json;\n\n// Return combined data\nreturn {\n  ...originalData,\n  evaluation: {\n    ...evaluation,\n    overallScore: weightedScore,\n    routing: routing,\n    evaluatedAt: new Date().toISOString(),\n    aiRawResponse: aiResponse\n  },\n  applicationId: originalData.email.split('@')[0] + '-' + new Date().getTime()\n};"
+      },
+      "id": "process-evaluation",
+      "name": "Process AI Evaluation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [840, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.evaluation.routing }}",
+              "operation": "equal",
+              "value2": "FAST_TRACK"
+            }
+          ]
+        }
+      },
+      "id": "route-fast-track",
+      "name": "Route: Fast Track?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1040, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.evaluation.routing }}",
+              "operation": "equal", 
+              "value2": "INTERVIEW"
+            }
+          ]
+        }
+      },
+      "id": "route-interview",
+      "name": "Route: Interview?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1040, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.evaluation.routing }}",
+              "operation": "equal",
+              "value2": "TECHNICAL_TEST"
+            }
+          ]
+        }
+      },
+      "id": "route-technical-test",
+      "name": "Route: Technical Test?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1040, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.evaluation.routing }}",
+              "operation": "equal",
+              "value2": "REJECT"
+            }
+          ]
+        }
+      },
+      "id": "route-reject",
+      "name": "Route: Reject?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1040, 500]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "channel": "#recruitment",
+        "text": "🚀 **FAST TRACK CANDIDATE** 🚀\\n\\n**{{ $json.name }}** ({{ $json.evaluation.overallScore }}/100)\\n📧 {{ $json.email }}\\n📍 {{ $json.location }}\\n\\n**Key Strengths:**\\n{{ $json.evaluation.strengths.join('\\n• ') }}\\n\\n**Interview Focus:**\\n{{ $json.evaluation.interviewFocus.join('\\n• ') }}\\n\\n**Next Steps:** Schedule interview ASAP\\n\\n[View Full Application](https://your-dashboard.com/applications/{{ $json.applicationId }})",
+        "otherOptions": {
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "slack-fast-track",
+      "name": "Slack: Fast Track Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1240, 120]
+    },
+    {
+      "parameters": {
+        "resource": "message", 
+        "channel": "#recruitment",
+        "text": "✅ **INTERVIEW CANDIDATE** \\n\\n**{{ $json.name }}** ({{ $json.evaluation.overallScore }}/100)\\n📧 {{ $json.email }}\\n📍 {{ $json.location }}\\n\\n**Summary:** {{ $json.evaluation.summary }}\\n\\n**Strengths:**\\n• {{ $json.evaluation.strengths.join('\\n• ') }}\\n\\n**Schedule within 48 hours**\\n\\n[View Full Application](https://your-dashboard.com/applications/{{ $json.applicationId }})"
+      },
+      "id": "slack-interview",
+      "name": "Slack: Interview Needed",
+      "type": "n8n-nodes-base.slack", 
+      "typeVersion": 1,
+      "position": [1240, 220]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "channel": "#recruitment",
+        "text": "🧪 **TECHNICAL TEST CANDIDATE**\\n\\n**{{ $json.name }}** ({{ $json.evaluation.overallScore }}/100)\\n📧 {{ $json.email }}\\n\\n**Summary:** {{ $json.evaluation.summary }}\\n\\n**Concerns to Address:**\\n• {{ $json.evaluation.concerns.join('\\n• ') }}\\n\\n**Next Steps:** Send coding assessment\\n\\n[View Full Application](https://your-dashboard.com/applications/{{ $json.applicationId }})"
+      },
+      "id": "slack-technical-test",
+      "name": "Slack: Technical Test Required",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1240, 320]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@allign.dk",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Thank you for your application to ALLIGN",
+        "emailFormat": "html",
+        "message": "<!DOCTYPE html>\\n<html>\\n<head>\\n    <style>\\n        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\\n        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; text-align: center; }\\n        .content { padding: 20px; }\\n        .footer { background: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666; }\\n    </style>\\n</head>\\n<body>\\n    <div class=\\\"header\\\">\\n        <h1>Thank you for applying to ALLIGN!</h1>\\n    </div>\\n    <div class=\\\"content\\\">\\n        <p>Hi {{ $json.name }},</p>\\n        \\n        <p>We've received your application for the Full-Stack Developer position and wanted to thank you for your interest in joining ALLIGN.</p>\\n        \\n        <p><strong>Application Details:</strong></p>\\n        <ul>\\n            <li>Application ID: {{ $json.applicationId }}</li>\\n            <li>Submitted: {{ $json.submittedAt }}</li>\\n            <li>Position: Full-Stack Developer</li>\\n        </ul>\\n        \\n        <p>Our team is currently reviewing your application. Based on your experience and our current needs, we expect to get back to you within <strong>24-48 hours</strong> with next steps.</p>\\n        \\n        <p>In the meantime, feel free to:</p>\\n        <ul>\\n            <li>Follow us on <a href=\\\"https://linkedin.com/company/allign\\\">LinkedIn</a> for company updates</li>\\n            <li>Check out our <a href=\\\"https://allign.dk\\\">website</a> to learn more about our mission</li>\\n            <li>Reach out if you have any questions</li>\\n        </ul>\\n        \\n        <p>We're excited about the possibility of you joining our team to help transform the construction industry!</p>\\n        \\n        <p>Best regards,<br>The ALLIGN Recruiting Team</p>\\n    </div>\\n    <div class=\\\"footer\\\">\\n        <p>ALLIGN • Building the future of construction management software<br>\\n        This is an automated message from our recruitment system.</p>\\n    </div>\\n</body>\\n</html>",
+        "options": {}
+      },
+      "id": "email-confirmation",
+      "name": "Email: Application Confirmation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1040, 600]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "applications",
+        "columns": "name, email, phone, location, linkedin, github, react_experience, ai_tools_experience, portfolio, start_date, work_hours, remote_experience, why_allign, startup_experience, technical_challenge, salary_expectations, questions_for_us, additional_info, referral_source, submitted_at, application_id, overall_score, routing, evaluation_data, created_at",
+        "additionalFields": {
+          "values": "={{ $json.name }}, {{ $json.email }}, {{ $json.phone }}, {{ $json.location }}, {{ $json.linkedin }}, {{ $json.github }}, {{ JSON.stringify($json.reactExperience) }}, {{ JSON.stringify($json.aiToolsExperience) }}, {{ JSON.stringify($json.portfolio) }}, {{ $json.startDate }}, {{ JSON.stringify($json.workHours) }}, {{ JSON.stringify($json.remoteExperience) }}, {{ JSON.stringify($json.whyAllign) }}, {{ JSON.stringify($json.startupExperience) }}, {{ JSON.stringify($json.technicalChallenge) }}, {{ $json.salaryExpectations }}, {{ JSON.stringify($json.questionsForUs) }}, {{ JSON.stringify($json.additionalInfo) }}, {{ $json.referralSource }}, {{ $json.submittedAt }}, {{ $json.applicationId }}, {{ $json.evaluation.overallScore }}, {{ $json.evaluation.routing }}, {{ JSON.stringify($json.evaluation) }}, {{ new Date().toISOString() }}"
+        }
+      },
+      "id": "database-store",
+      "name": "Database: Store Application",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1040, 700]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\\n  \\\"status\\\": \\\"success\\\",\\n  \\\"message\\\": \\\"Application received and processed\\\",\\n  \\\"applicationId\\\": \\\"{{ $json.applicationId }}\\\",\\n  \\\"nextSteps\\\": \\\"We'll contact you within 24-48 hours\\\"\\n}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook", 
+      "typeVersion": 1,
+      "position": [1240, 600]
+    }
+  ],
+  "connections": {
+    "Webhook - Application Received": {
+      "main": [
+        [
+          {
+            "node": "Extract Basic Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Basic Data": {
+      "main": [
+        [
+          {
+            "node": "AI Evaluation (GPT-4)",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Evaluation (GPT-4)": {
+      "main": [
+        [
+          {
+            "node": "Process AI Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Evaluation": {
+      "main": [
+        [
+          {
+            "node": "Route: Fast Track?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route: Interview?", 
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route: Technical Test?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route: Reject?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email: Application Confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Database: Store Application",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route: Fast Track?": {
+      "main": [
+        [
+          {
+            "node": "Slack: Fast Track Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route: Interview?": {
+      "main": [
+        [
+          {
+            "node": "Slack: Interview Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route: Technical Test?": {
+      "main": [
+        [
+          {
+            "node": "Slack: Technical Test Required", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email: Application Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
