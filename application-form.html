@@ -1067,8 +1067,7 @@
             };
             
             try {
-                // Temporarily using httpbin for testing - replace with working n8n endpoint
-                const response = await fetch('https://httpbin.org/post', {
+                const response = await fetch('https://n8n.aigrowthadvisors.cc/webhook-test/allign-developer-application', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
