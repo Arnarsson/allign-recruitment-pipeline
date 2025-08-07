@@ -1140,42 +1140,63 @@
         }
         
         function fillTestData() {
+            // Generate random unique identifiers
+            const randomId = Math.random().toString(36).substring(2, 15);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '');
+            const uniqueId = `${randomId}-${timestamp}`;
+            
+            // Random arrays for variety
+            const names = ['Alex Test', 'Jordan Fake', 'Casey Mock', 'Riley Demo', 'Avery Sample', 'Quinn Test', 'Blake Mock', 'Drew Fake'];
+            const cities = ['Test City', 'Mock Town', 'Demo Village', 'Sample City', 'Fake Borough', 'Test Metro', 'Mock Valley', 'Demo Heights'];
+            const countries = ['Testlandia', 'Mockistan', 'Demonia', 'Fakeland', 'Sampleshire', 'Testopia', 'Mockville', 'Demostan'];
+            const availabilities = ['immediately', '2-weeks', '1-month', '2-months'];
+            const frameworks = ['React', 'Next.js', 'Vue', 'Angular', 'Svelte'];
+            const challenges = ['memory leaks', 'performance optimization', 'state management', 'API integration', 'database scaling'];
+            
+            // Pick random values
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            const randomCity = cities[Math.floor(Math.random() * cities.length)];
+            const randomCountry = countries[Math.floor(Math.random() * countries.length)];
+            const randomAvailability = availabilities[Math.floor(Math.random() * availabilities.length)];
+            const randomFramework = frameworks[Math.floor(Math.random() * frameworks.length)];
+            const randomChallenge = challenges[Math.floor(Math.random() * challenges.length)];
+            
             const testData = {
-                // Section 1: Basic Information
-                name: "TEST APPLICANT - DO NOT CONTACT",
-                email: "test.application.fake@example.com",
-                phone: "+00 00 00 00 00",
-                location: "TEST CITY, TEST COUNTRY",
-                linkedin: "https://linkedin.com/in/test-fake-profile",
-                github: "https://github.com/test-fake-user",
+                // Section 1: Basic Information - ALL UNIQUE
+                name: `🧪 ${randomName} [TEST-${uniqueId}] - DO NOT CONTACT`,
+                email: `test.${uniqueId}@fake-domain-${randomId}.example`,
+                phone: `+${Math.floor(Math.random() * 99)} ${Math.floor(Math.random() * 99)} ${Math.floor(Math.random() * 99)} ${Math.floor(Math.random() * 99)} ${Math.floor(Math.random() * 99)}`,
+                location: `${randomCity}, ${randomCountry} [TEST-LOCATION-${randomId}]`,
+                linkedin: `https://linkedin.com/in/fake-test-${uniqueId}`,
+                github: `https://github.com/test-fake-${uniqueId}`,
                 
-                // Section 2: Technical Experience
-                q1: "🧪 TEST DATA - This is a sample response about building a React dashboard with Next.js 13, WebSocket connections, and performance optimizations. This is NOT a real application - it's test data for development purposes only.",
+                // Section 2: Technical Experience - VARIED CONTENT
+                q1: `🧪 TEST DATA [${uniqueId}] - Built a ${randomFramework} dashboard with real-time ${randomChallenge} handling. Used hooks, state management, and performance optimizations. Generated test data ID: ${randomId}. This is NOT a real application.`,
                 
-                q2: "🧪 TEST DATA - This is sample text about using GitHub Copilot, Claude, and other AI tools for development. This is NOT a real application - it's test data for development purposes only.",
+                q2: `🧪 TEST DATA [${uniqueId}] - Extensive experience with GitHub Copilot, Claude AI, and cursor for ${randomChallenge} projects. Daily workflow integration for ${randomFramework} development. Test ID: ${randomId}. This is NOT a real application.`,
                 
-                q3: "🧪 TEST DATA - FAKE PORTFOLIO LINKS:\n1. https://example.com/fake-project - This is not a real project\n2. https://example.com/fake-app - This is not a real application\n3. This is NOT a real application - it's test data for development purposes only.",
+                q3: `🧪 TEST PORTFOLIO [${uniqueId}]:\n1. https://github.com/test-${randomId}/fake-${randomFramework.toLowerCase()}-app\n2. https://demo-${randomId}.example.com - Fake ${randomChallenge} project\n3. Blog post about ${randomFramework} optimization [TEST-${uniqueId}]`,
                 
-                // Section 3: Availability & Commitment
-                q4: "immediately",
+                // Section 3: Availability & Commitment - RANDOM
+                q4: randomAvailability,
                 
-                q5: "🧪 TEST DATA - This is sample text about work hours and time zones. This is NOT a real application - it's test data for development purposes only.",
+                q5: `🧪 TEST DATA [${uniqueId}] - Working in ${randomCountry} timezone, flexible hours for ${randomFramework} development. Available for ${randomChallenge} discussions during EU hours. Test ID: ${randomId}. This is NOT real.`,
                 
-                q6: "🧪 TEST DATA - This is sample text about remote work experience. This is NOT a real application - it's test data for development purposes only.",
+                q6: `🧪 TEST DATA [${uniqueId}] - ${Math.floor(Math.random() * 5) + 1}+ years remote work experience, including ${randomFramework} projects and ${randomChallenge} optimization. Test ID: ${randomId}. This is NOT real.`,
                 
-                // Section 4: Culture & Motivation  
-                q7: "🧪 TEST DATA - This is sample text about interest in ALLIGN and construction tech. This is NOT a real application - it's test data for development purposes only.",
+                // Section 4: Culture & Motivation - VARIED  
+                q7: `🧪 TEST DATA [${uniqueId}] - Passionate about construction tech and ${randomChallenge} solutions. Excited about ${randomFramework} applications in field conditions. Test ID: ${randomId}. This is NOT real.`,
                 
-                q8: "🧪 TEST DATA - This is sample text about startup experience. This is NOT a real application - it's test data for development purposes only.",
+                q8: `🧪 TEST DATA [${uniqueId}] - Experience with ${Math.floor(Math.random() * 3) + 1} startups, focusing on ${randomFramework} and ${randomChallenge} challenges. Employee #${Math.floor(Math.random() * 10) + 1} at previous startup. Test ID: ${randomId}. This is NOT real.`,
                 
-                q9: "🧪 TEST DATA - This is sample text about a technical challenge. This is NOT a real application - it's test data for development purposes only.",
+                q9: `🧪 TEST DATA [${uniqueId}] - Recently solved complex ${randomChallenge} issue in ${randomFramework} application. Used profiling tools and optimization techniques to improve performance by ${Math.floor(Math.random() * 80) + 20}%. Test ID: ${randomId}. This is NOT real.`,
                 
-                // Section 5: Final Details
-                q10: "🧪 TEST SALARY - $999,999 (This is fake test data)",
+                // Section 5: Final Details - RANDOM VALUES
+                q10: `🧪 TEST SALARY [${uniqueId}] - €${Math.floor(Math.random() * 50000) + 40000}-${Math.floor(Math.random() * 30000) + 70000} + equity (FAKE TEST DATA)`,
                 
-                q11: "🧪 TEST DATA - These are sample questions for the company. This is NOT a real application - it's test data for development purposes only.",
+                q11: `🧪 TEST QUESTIONS [${uniqueId}] - What's the ${randomFramework} stack? How do you handle ${randomChallenge}? Team structure for ${randomCountry}-based developers? Test ID: ${randomId}. This is NOT real.`,
                 
-                q12: "🧪 TEST DATA - This is sample additional information. This is NOT a real application - it's test data for development purposes only."
+                q12: `🧪 TEST ADDITIONAL [${uniqueId}] - Also experienced in UI/UX design for ${randomFramework} applications and ${randomChallenge} optimization. Portfolio includes ${randomCountry} localization projects. Test ID: ${randomId}. This is NOT real.`
             };
             
             // Fill all form fields
