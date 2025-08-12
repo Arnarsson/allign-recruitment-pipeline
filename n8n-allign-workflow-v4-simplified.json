@@ -1,0 +1,224 @@
+{
+  "name": "allign-recruitment-pipeline-simplified",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "allign-developer-application",
+        "options": {}
+      },
+      "id": "13484a0b-d482-4c2a-91dd-4efdf73549af",
+      "name": "📥 Application Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-1440, 144],
+      "webhookId": "allign-dev-app-v2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "app-id",
+              "name": "applicationId",
+              "value": "={{ $json.email.split('@')[0] }}-{{ $now.format('yyyy-MM-dd-HHmmss') }}",
+              "type": "string"
+            },
+            {
+              "id": "processed-at",
+              "name": "processedAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "referral-source",
+              "name": "referralSource",
+              "value": "={{ $json.referralSource ?? 'direct' }}",
+              "type": "string"
+            },
+            {
+              "id": "application-data",
+              "name": "fullApplication",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16a9f6af-5c17-4f03-b4be-01285343cece",
+      "name": "🔄 Normalize Application Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-1216, 144]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simplified processing with better error handling\nconst items = $input.all();\nconst results = [];\n\nfor (const [index, item] of items.entries()) {\n  try {\n    // Get the original application data\n    const originalData = item.json.fullApplication || {};\n    \n    // Simple scoring based on content length and keywords\n    let score = 30; // base score\n    \n    // Score based on content quality\n    if (originalData.reactExperience && originalData.reactExperience.length > 100) score += 15;\n    if (originalData.aiToolsExperience && originalData.aiToolsExperience.length > 50) score += 10;\n    if (originalData.portfolio && originalData.portfolio.length > 50) score += 10;\n    if (originalData.whyAllign && originalData.whyAllign.length > 50) score += 10;\n    if (originalData.startupExperience && originalData.startupExperience.length > 50) score += 10;\n    if (originalData.technicalChallenge && originalData.technicalChallenge.length > 50) score += 10;\n    \n    // Availability bonus\n    if (originalData.startDate === 'immediately') score += 5;\n    \n    // Determine routing\n    let routing = 'REVIEW';\n    if (score >= 85) routing = 'FAST_TRACK';\n    else if (score >= 70) routing = 'INTERVIEW';\n    else if (score >= 55) routing = 'TECHNICAL_TEST';\n    else if (score < 40) routing = 'REJECT';\n    \n    const urgencyMap = {\n      'FAST_TRACK': '🚨 URGENT',\n      'INTERVIEW': '⚡ HIGH',\n      'TECHNICAL_TEST': '📋 MEDIUM',\n      'REVIEW': '🔍 LOW',\n      'REJECT': '❌ NONE'\n    };\n    \n    // Prepare result with all data intact\n    const processedResult = {\n      // Copy all original data\n      ...originalData,\n      \n      // Add processing metadata\n      applicationId: item.json.applicationId || `${originalData.email?.split('@')[0] || 'unknown'}-${Date.now()}`,\n      processedAt: item.json.processedAt || new Date().toISOString(),\n      \n      // Add evaluation results\n      evaluation: {\n        finalScore: score,\n        finalRouting: routing,\n        urgencyLevel: urgencyMap[routing],\n        evaluatedAt: new Date().toISOString(),\n        processingTime: 100,\n        summary: `Automated scoring: ${score}/100 points`,\n        method: 'simplified'\n      }\n    };\n    \n    results.push({\n      json: processedResult,\n      pairedItem: { item: index }\n    });\n    \n  } catch (error) {\n    console.error('Processing error:', error);\n    // Fallback with original data\n    const originalData = item.json.fullApplication || {};\n    results.push({\n      json: {\n        ...originalData,\n        applicationId: `error-${Date.now()}`,\n        processedAt: new Date().toISOString(),\n        evaluation: {\n          finalScore: 50,\n          finalRouting: 'REVIEW',\n          urgencyLevel: '🔍 ERROR - MANUAL REVIEW',\n          evaluatedAt: new Date().toISOString(),\n          error: error.message\n        }\n      },\n      pairedItem: { item: index }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "id": "2475ef0d-b7e2-42e6-8e1d-45606fa583ae",
+      "name": "⚙️ Process Application",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-656, 208]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evaluation.finalRouting }}",
+                    "rightValue": "TECHNICAL_TEST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ee67f77b-fb4a-4912-bbe8-92a8bb37ad50",
+      "name": "🧪 Route: Technical Test",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [-320, 192]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C098E9C8MPZ",
+          "mode": "list",
+          "cachedResultName": "recruit"
+        },
+        "text": "=🧪 **TECHNICAL ASSESSMENT REQUIRED**\n\n*{{ $json.name }}* • Score: *{{ $json.evaluation.finalScore }}/100*\n\n📧 {{ $json.email }}\n📍 {{ $json.location }}\n⚡ Available: {{ $json.startDate }}\n\n*🎯 Assessment Focus Areas:*\n• React/Next.js proficiency\n• Problem-solving approach  \n• Code quality and structure\n\n*⏰ Next Steps:* Send coding assessment within 72 hours\n🆔 Application ID: {{ $json.applicationId }}\n\n_Automated by ALLIGN Recruitment AI_",
+        "otherOptions": {}
+      },
+      "id": "14dd7dd6-04bb-4f3f-9692-2e9302b8296a",
+      "name": "🧪 Slack: Technical Test Required",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [-96, 192],
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "yhoC4Xrx7eqrOOzJ",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Xydl2hJkeC5mYhYhWps_CPNQ0w-oSZoCKJf6eSJP4hE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Phone": "={{ $json.phone }}",
+            "Location": "={{ $json.location }}",
+            "LinkedIn": "={{ $json.linkedin }}",
+            "GitHub": "={{ $json.github }}",
+            "Score": "={{ $json.evaluation.finalScore }}",
+            "Routing": "={{ $json.evaluation.finalRouting }}",
+            "SubmittedAt": "={{ $json.submittedAt }}",
+            "ProcessedAt": "={{ $json.processedAt }}",
+            "ApplicationId": "={{ $json.applicationId }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "741628d7-a23f-4538-84a4-b549e3c37718",
+      "name": "📊 Google Sheets: Store Application",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [-320, 500],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3TeftKbcoW5Nb6h",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "📥 Application Webhook": {
+      "main": [
+        [
+          {
+            "node": "🔄 Normalize Application Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Normalize Application Data": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Process Application",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Process Application": {
+      "main": [
+        [
+          {
+            "node": "🧪 Route: Technical Test",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📊 Google Sheets: Store Application",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧪 Route: Technical Test": {
+      "main": [
+        [
+          {
+            "node": "🧪 Slack: Technical Test Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
