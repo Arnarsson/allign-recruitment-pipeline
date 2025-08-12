@@ -1,0 +1,546 @@
+{
+  "name": "allign-recruitment-pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "allign-developer-application",
+        "options": {}
+      },
+      "id": "13484a0b-d482-4c2a-91dd-4efdf73549af",
+      "name": "📥 Application Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1440,
+        144
+      ],
+      "webhookId": "allign-dev-app-v2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "app-id",
+              "name": "applicationId",
+              "value": "={{ $json.email.split('@')[0] }}-{{ $now.format('yyyy-MM-dd-HHmmss') }}",
+              "type": "string"
+            },
+            {
+              "id": "processed-at",
+              "name": "processedAt",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "referral-source",
+              "name": "referralSource",
+              "value": "={{ $json.referralSource ?? 'direct' }}",
+              "type": "string"
+            },
+            {
+              "id": "application-data",
+              "name": "fullApplication",
+              "value": "={{ $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16a9f6af-5c17-4f03-b4be-01285343cece",
+      "name": "🔄 Normalize Application Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1216,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process AI evaluation with proper data item linking\nconst items = $input.all();\nconst results = [];\n\nfor (const [index, item] of items.entries()) {\n  try {\n    // Get the original application data\n    const originalData = item.json.fullApplication || {};\n    const aiResponse = item.json.message?.content || item.json.content || '{}';\n    \n    // Parse AI evaluation\n    let aiEvaluation;\n    try {\n      // Clean the response and extract JSON\n      const jsonMatch = aiResponse.match(/\\{[\\s\\S]*\\}/);\n      if (jsonMatch) {\n        aiEvaluation = JSON.parse(jsonMatch[0]);\n      } else {\n        throw new Error('No JSON found in AI response');\n      }\n    } catch (parseError) {\n      // Fallback evaluation for parsing errors\n      aiEvaluation = {\n        overallScore: 50,\n        routing: \"REVIEW\",\n        scores: {\n          technical: 50,\n          aiTools: 50,\n          availability: 50,\n          culture: 50,\n          portfolio: 50,\n          communication: 50\n        },\n        analysis: {\n          strengths: [\"Application received\"],\n          concerns: [\"AI evaluation parsing failed\"],\n          recommendations: [\"Manual review required\"],\n          interviewFocus: [\"General discussion\"]\n        },\n        summary: \"Manual review required due to AI parsing error.\",\n        confidence: 0.5\n      };\n    }\n    \n    // Calculate weighted score\n    const weightedScore = Math.round(\n      (aiEvaluation.scores?.technical * 0.35 || 25) +\n      (aiEvaluation.scores?.aiTools * 0.20 || 10) +\n      (aiEvaluation.scores?.availability * 0.15 || 7.5) +\n      (aiEvaluation.scores?.culture * 0.15 || 7.5) +\n      (aiEvaluation.scores?.portfolio * 0.10 || 5) +\n      (aiEvaluation.scores?.communication * 0.05 || 2.5)\n    );\n    \n    // Determine final routing based on weighted score\n    let finalRouting = aiEvaluation.routing || \"REVIEW\";\n    if (weightedScore >= 85) finalRouting = \"FAST_TRACK\";\n    else if (weightedScore >= 70) finalRouting = \"INTERVIEW\";\n    else if (weightedScore >= 55) finalRouting = \"TECHNICAL_TEST\";\n    else if (weightedScore >= 40) finalRouting = \"REVIEW\";\n    else finalRouting = \"REJECT\";\n    \n    // Create urgency level based on routing\n    const urgencyMap = {\n      \"FAST_TRACK\": \"🚨 URGENT\",\n      \"INTERVIEW\": \"⚡ HIGH\",\n      \"TECHNICAL_TEST\": \"📋 MEDIUM\",\n      \"REVIEW\": \"🔍 LOW\",\n      \"REJECT\": \"❌ NONE\"\n    };\n    \n    // Prepare enhanced result with proper linking\n    const processedResult = {\n      // Original application data (flattened for easier access)\n      name: originalData.name || 'Unknown',\n      email: originalData.email || `unknown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}@example.com`,\n      phone: originalData.phone || '',\n      location: originalData.location || '',\n      linkedin: originalData.linkedin || '',\n      github: originalData.github || '',\n      reactExperience: originalData.reactExperience || '',\n      aiToolsExperience: originalData.aiToolsExperience || '',\n      portfolio: originalData.portfolio || '',\n      startDate: originalData.startDate || '',\n      workHours: originalData.workHours || '',\n      remoteExperience: originalData.remoteExperience || '',\n      whyAllign: originalData.whyAllign || '',\n      startupExperience: originalData.startupExperience || '',\n      technicalChallenge: originalData.technicalChallenge || '',\n      salaryExpectations: originalData.salaryExpectations || '',\n      questionsForUs: originalData.questionsForUs || '',\n      additionalInfo: originalData.additionalInfo || '',\n      submittedAt: originalData.submittedAt || new Date().toISOString(),\n      referralSource: originalData.referralSource || 'direct',\n      userAgent: originalData.userAgent || '',\n      consent: originalData.consent || false,\n      \n      // Processing metadata\n      applicationId: item.json.applicationId || `${originalData.email?.split('@')[0] || 'unknown'}-${Date.now()}`,\n      processedAt: item.json.processedAt || new Date().toISOString(),\n      \n      // AI evaluation results\n      evaluation: {\n        ...aiEvaluation,\n        finalScore: weightedScore,\n        finalRouting: finalRouting,\n        urgencyLevel: urgencyMap[finalRouting],\n        evaluatedAt: new Date().toISOString(),\n        processingTime: Date.now() - new Date(item.json.processedAt || new Date()).getTime(),\n        rawAiResponse: aiResponse\n      },\n      \n      // Routing metadata for downstream nodes\n      routingData: {\n        route: finalRouting,\n        urgency: urgencyMap[finalRouting],\n        requiresImmediateAction: finalRouting === \"FAST_TRACK\",\n        timelineHours: {\n          \"FAST_TRACK\": 2,\n          \"INTERVIEW\": 48,\n          \"TECHNICAL_TEST\": 72,\n          \"REVIEW\": 168,\n          \"REJECT\": 24\n        }[finalRouting]\n      }\n    };\n    \n    results.push({\n      json: processedResult,\n      pairedItem: { item: index }\n    });\n    \n  } catch (error) {\n    // Error handling with proper linking\n    const originalData = item.json.fullApplication || {};\n    results.push({\n      json: {\n        // Basic data even in error case\n        name: originalData.name || 'Error Processing',\n        email: originalData.email || `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}@example.com`,\n        phone: originalData.phone || '',\n        location: originalData.location || '',\n        linkedin: originalData.linkedin || '',\n        github: originalData.github || '',\n        reactExperience: originalData.reactExperience || '',\n        aiToolsExperience: originalData.aiToolsExperience || '',\n        portfolio: originalData.portfolio || '',\n        startDate: originalData.startDate || '',\n        workHours: originalData.workHours || '',\n        remoteExperience: originalData.remoteExperience || '',\n        whyAllign: originalData.whyAllign || '',\n        startupExperience: originalData.startupExperience || '',\n        technicalChallenge: originalData.technicalChallenge || '',\n        salaryExpectations: originalData.salaryExpectations || '',\n        questionsForUs: originalData.questionsForUs || '',\n        additionalInfo: originalData.additionalInfo || '',\n        submittedAt: originalData.submittedAt || new Date().toISOString(),\n        referralSource: originalData.referralSource || 'direct',\n        userAgent: originalData.userAgent || '',\n        consent: originalData.consent || false,\n        applicationId: item.json.applicationId || `error-${Date.now()}`,\n        processedAt: item.json.processedAt || new Date().toISOString(),\n        evaluation: {\n          error: error.message,\n          finalRouting: \"REVIEW\",\n          finalScore: 0,\n          urgencyLevel: \"🔍 ERROR - MANUAL REVIEW\",\n          evaluatedAt: new Date().toISOString()\n        }\n      },\n      pairedItem: { item: index }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "id": "2475ef0d-b7e2-42e6-8e1d-45606fa583ae",
+      "name": "⚙️ Process AI Evaluation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evaluation.finalRouting }}",
+                    "rightValue": "FAST_TRACK",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6df61754-2955-426e-9a89-74dea8dd4dda",
+      "name": "🚀 Route: Fast Track",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evaluation.finalRouting }}",
+                    "rightValue": "INTERVIEW",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8829fa77-cf10-4614-adf0-0dcccd2cb38a",
+      "name": "💼 Route: Interview",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evaluation.finalRouting }}",
+                    "rightValue": "TECHNICAL_TEST",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ee67f77b-fb4a-4912-bbe8-92a8bb37ad50",
+      "name": "🧪 Route: Technical Test",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.evaluation.finalRouting }}",
+                    "rightValue": "REJECT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cc0d8b3d-3cca-4af8-9d62-da629592a17c",
+      "name": "❌ Route: Reject",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C098E9C8MPZ",
+          "mode": "list",
+          "cachedResultName": "recruit"
+        },
+        "text": "=🚨 **EXCEPTIONAL CANDIDATE ALERT** 🚨\n\n*{{ $('🔄 Normalize Application Data').item.json.fullApplication.name }}* • Score: *{{ $json.evaluation.finalScore }}/100*\n\n📧 {{ $('🔄 Normalize Application Data').item.json.fullApplication.email }}\n📍 {{ $('🔄 Normalize Application Data').item.json.fullApplication.location }}\n🔗 {{ $('🔄 Normalize Application Data').item.json.fullApplication.linkedin }}\n⚡ Available: {{ $('🔄 Normalize Application Data').item.json.fullApplication.startDate }}\n\n*🎯 Key Strengths:*\n• Application received and processed\n• Manual review required\n\n*🎤 Interview Focus Areas:*\n• General technical discussion\n• Portfolio review {{ $('📥 Application Webhook').item.json.body.portfolio }}\n\n*💡 Why Allign?:*\n{{ $('📥 Application Webhook').item.json.body.whyAllign }}\n\n*⏰ ACTION REQUIRED:* Schedule interview within 2 hours\n🆔 Application Submitted:{{ $('📥 Application Webhook').item.json.body.submittedAt }} \n\n_Automated by ALLIGN Recruitment AI_",
+        "otherOptions": {}
+      },
+      "id": "7fa8a940-7d72-4808-9930-998be3f7901a",
+      "name": "🚨 Slack: Fast Track Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        -96,
+        -192
+      ],
+      "webhookId": "be6535de-7983-4159-a15b-2d8703740bb1",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "yhoC4Xrx7eqrOOzJ",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C098E9C8MPZ",
+          "mode": "list",
+          "cachedResultName": "recruit"
+        },
+        "text": "=✅ **STRONG CANDIDATE - INTERVIEW RECOMMENDED**\n\n*{{ $('🔄 Normalize Application Data').item.json.fullApplication.name }}* • Score: *{{ $json.evaluation.finalScore }}/100*\n\n📧 {{ $('🔄 Normalize Application Data').item.json.fullApplication.email }}\n📍 {{ $('🔄 Normalize Application Data').item.json.fullApplication.location }}\n🔗 {{ $('🔄 Normalize Application Data').item.json.fullApplication.linkedin }}\n⚡ Available: {{ $('🔄 Normalize Application Data').item.json.fullApplication.startDate }}\n\n\n*💡 Why Allign?:*\n{{ $('📥 Application Webhook').item.json.body.whyAllign }}\n\n*⏰ ACTION REQUIRED:* Schedule interview within 2 hours\n🆔 Application Submitted:{{ $('📥 Application Webhook').item.json.body.submittedAt }} ",
+        "otherOptions": {}
+      },
+      "id": "1dfd9fd0-213f-4798-a748-af1cd4795cf9",
+      "name": "📋 Slack: Interview Candidate",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        -96,
+        0
+      ],
+      "webhookId": "95a9d1c2-3cad-4c3e-9f29-30de68214a10",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "yhoC4Xrx7eqrOOzJ",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C098E9C8MPZ",
+          "mode": "list",
+          "cachedResultName": "recruit"
+        },
+        "text": "=🧪 **TECHNICAL ASSESSMENT REQUIRED**\n\n*{{ $('🔄 Normalize Application Data').item.json.fullApplication.name }}* • Score: *{{ $json.evaluation.finalScore }}/100*\n\n📧 {{ $('🔄 Normalize Application Data').item.json.fullApplication.email }}\n📍 {{ $('🔄 Normalize Application Data').item.json.fullApplication.location }}\n🔗 {{ $('🔄 Normalize Application Data').item.json.fullApplication.linkedin }}\n⚡ Available: {{ $('🔄 Normalize Application Data').item.json.fullApplication.startDate }}\n\n*🎯 Assessment Focus Areas:*\n• React/Next.js proficiency\n• Problem-solving approach\n• Code quality and structure\n\n*⏰ Next Steps:* Send coding assessment within 72 hours\n🆔 Application Submitted:{{ $('📥 Application Webhook').item.json.body.submittedAt }} \n",
+        "otherOptions": {}
+      },
+      "id": "14dd7dd6-04bb-4f3f-9692-2e9302b8296a",
+      "name": "🧪 Slack: Technical Test Required",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        -96,
+        192
+      ],
+      "webhookId": "4c15a0c6-2f97-476b-97ac-1e56b27c59b2",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "yhoC4Xrx7eqrOOzJ",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "applications",
+          "mode": "list",
+          "cachedResultName": "applications"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.name }}",
+            "email": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.email }}",
+            "phone": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.phone }}",
+            "location": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.location }}",
+            "linkedin_url": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.linkedin }}",
+            "github_url": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.github }}",
+            "react_experience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.reactExperience }}",
+            "ai_tools_experience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.aiToolsExperience }}",
+            "portfolio_links": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.portfolio }}",
+            "start_date": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.startDate }}",
+            "work_hours_timezone": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.workHours }}",
+            "remote_experience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.remoteExperience }}",
+            "why_allign": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.whyAllign }}",
+            "startup_experience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.startupExperience }}",
+            "technical_challenge": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.technicalChallenge }}",
+            "salary_expectations": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.salaryExpectations }}",
+            "questions_for_us": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.questionsForUs }}",
+            "additional_info": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.additionalInfo }}",
+            "submitted_at": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.submittedAt }}",
+            "referral_source": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.referralSource }}",
+            "user_agent": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.userAgent }}",
+            "consent_given": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.consent }}",
+            "ai_evaluation_json": "={{ JSON.stringify($json.evaluation) }}",
+            "ai_overall_score": "={{ $json.evaluation.finalScore }}",
+            "ai_recommendation": "={{ $json.evaluation.finalRouting }}",
+            "ai_evaluation_summary": "={{ $json.evaluation.urgencyLevel }}",
+            "status": "submitted",
+            "processed_at": "={{ $json.processedAt }}"
+          },
+          "matchingColumns": [
+            "email"
+          ]
+        },
+        "options": {}
+      },
+      "id": "64b8db2d-583a-4147-966d-f2b29d5fda30",
+      "name": "💾 Store Application Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -320,
+        768
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "G42et2ypopM9SuOg",
+          "name": "Postgres accountMain"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Xydl2hJkeC5mYhYhWps_CPNQ0w-oSZoCKJf6eSJP4hE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xydl2hJkeC5mYhYhWps_CPNQ0w-oSZoCKJf6eSJP4hE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.name }}",
+            "email": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.email }}",
+            "phone": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.phone }}",
+            "location": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.location }}",
+            "linkedin": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.linkedin }}",
+            "github": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.github }}",
+            "reactExperience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.reactExperience }}",
+            "aiToolsExperience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.aiToolsExperience }}",
+            "portfolio": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.portfolio }}",
+            "startDate": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.startDate }}",
+            "workHours": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.workHours }}",
+            "remoteExperience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.remoteExperience }}",
+            "whyAllign": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.whyAllign }}",
+            "startupExperience": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.startupExperience }}",
+            "technicalChallenge": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.technicalChallenge }}",
+            "salaryExpectations": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.salaryExpectations }}",
+            "questionsForUs": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.questionsForUs }}",
+            "additionalInfo": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.additionalInfo }}",
+            "submittedAt": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.submittedAt }}",
+            "referralSource": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.referralSource }}",
+            "userAgent": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.userAgent }}",
+            "consent": "={{ $('🔄 Normalize Application Data').item.json.fullApplication.consent }}",
+            "evaluation": "={{ $json.evaluation.finalScore }}",
+            "applicationId": "={{ $json.applicationId }}",
+            "processedAt": "={{ $json.processedAt }}"
+          },
+          "matchingColumns": [
+            "name"
+          ]
+        },
+        "options": {}
+      },
+      "id": "741628d7-a23f-4538-84a4-b549e3c37718",
+      "name": "📊 Google Sheets: Store Application",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -320,
+        1008
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "q3TeftKbcoW5Nb6h",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "📥 Application Webhook": {
+      "main": [
+        [
+          {
+            "node": "🔄 Normalize Application Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Normalize Application Data": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Process AI Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Process AI Evaluation": {
+      "main": [
+        [
+          {
+            "node": "🚀 Route: Fast Track",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "💼 Route: Interview",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🧪 Route: Technical Test",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "❌ Route: Reject",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "💾 Store Application Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📊 Google Sheets: Store Application",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🚀 Route: Fast Track": {
+      "main": [
+        [
+          {
+            "node": "🚨 Slack: Fast Track Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💼 Route: Interview": {
+      "main": [
+        [
+          {
+            "node": "📋 Slack: Interview Candidate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧪 Route: Technical Test": {
+      "main": [
+        [
+          {
+            "node": "🧪 Slack: Technical Test Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6f562a3b-0b07-483f-b47e-0b40b9d458e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ec1ccdf24f8f3b324ea05f5b57837e16b7538c9694c010734b082b8e30179f14"
+  },
+  "id": "Gebi5U0aOxeqoT16",
+  "tags": []
+}
