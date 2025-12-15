@@ -39,7 +39,7 @@
 1. Open `application-form.html`
 2. Find line 1436:
    ```javascript
-   const response = await fetch('https://n8n.aigrowthadvisors.cc/webhook/allign-developer-application', {
+   const response = await fetch('https://n8n.svenarnarsson.com/webhook/allign-developer-application', {
    ```
 3. Replace with your n8n webhook URL
 
